@@ -10,7 +10,7 @@ const swaggerUI = require("swagger-ui-express");
 const PORT = process.env.PORT;
 
 //import routes
-const blogCategoryRouter = require("./routes/blogCatRoute");
+const blogCategoryRouter = require("./routes/blogCategoryRoute");
 
 const app = express();
 dbConnect();
