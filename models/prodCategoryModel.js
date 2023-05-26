@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-var blogCategorySchema = new mongoose.Schema(
+var prodCategorySchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -14,4 +14,4 @@ var blogCategorySchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("BCategory", blogCategorySchema);
+module.exports = mongoose.model("PCategory", prodCategorySchema);

@@ -5,7 +5,10 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const createBrand = asyncHandler(async (req, res) => {
   try {
     const newBrand = await Brand.create(req.body);
-    res.json(newBrand);
+    res.send({
+      message: "Đã tạo brand mới thành công.",
+      data: newBrand
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -17,7 +20,10 @@ const updateBrand = asyncHandler(async (req, res) => {
     const updatedBrand = await Brand.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    res.json(updatedBrand);
+    res.send({
+      message: "Đã cập nhật brand thành công.",
+      data: updatedBrand
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -27,25 +33,27 @@ const deleteBrand = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const deletedBrand = await Brand.findByIdAndDelete(id);
-    res.json(deletedBrand);
+    res.send({
+      message: "Đã xóa brand thành công.",
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
-const getBrand = asyncHandler(async (req, res) => {
+const getBrandById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const getaBrand = await Brand.findById(id);
-    res.json(getaBrand);
+    const getBrandDetail = await Brand.findById(id);
+    res.send({ data: getBrandDetail });
   } catch (error) {
     throw new Error(error);
   }
 });
-const getallBrand = asyncHandler(async (req, res) => {
+const getAllBrand = asyncHandler(async (req, res) => {
   try {
-    const getallBrand = await Brand.find();
-    res.json(getallBrand);
+    const getListBrand = await Brand.find();
+    res.send({ data: getListBrand });
   } catch (error) {
     throw new Error(error);
   }
@@ -54,6 +62,6 @@ module.exports = {
   createBrand,
   updateBrand,
   deleteBrand,
-  getBrand,
-  getallBrand,
+  getBrandById,
+  getAllBrand,
 };

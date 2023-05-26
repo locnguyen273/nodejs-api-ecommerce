@@ -5,7 +5,10 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const createColor = asyncHandler(async (req, res) => {
   try {
     const newColor = await Color.create(req.body);
-    res.json(newColor);
+    res.send({
+      message: "Đã thêm màu mới thành công.",
+      data: newColor
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -17,7 +20,10 @@ const updateColor = asyncHandler(async (req, res) => {
     const updatedColor = await Color.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    res.json(updatedColor);
+    res.send({
+      message: "Đã cập nhật màu thành công.",
+      data: updatedColor
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -27,25 +33,31 @@ const deleteColor = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const deletedColor = await Color.findByIdAndDelete(id);
-    res.json(deletedColor);
+    res.send({
+      message: "Đã xóa màu thành công.",
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
-const getColor = asyncHandler(async (req, res) => {
+const getColorById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const getaColor = await Color.findById(id);
-    res.json(getaColor);
+    const getDetailColor = await Color.findById(id);
+    res.send({
+      data: getDetailColor
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
-const getallColor = asyncHandler(async (req, res) => {
+const getAllColor = asyncHandler(async (req, res) => {
   try {
-    const getallColor = await Color.find();
-    res.json(getallColor);
+    const getListColor = await Color.find();
+    res.send({
+      data: getListColor
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -54,6 +66,6 @@ module.exports = {
   createColor,
   updateColor,
   deleteColor,
-  getColor,
-  getallColor,
+  getColorById,
+  getAllColor,
 };

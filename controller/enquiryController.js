@@ -1,11 +1,14 @@
-const Enquiry = require("../models/enqModel");
+const Enquiry = require("../models/enquiryModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
 const createEnquiry = asyncHandler(async (req, res) => {
   try {
     const newEnquiry = await Enquiry.create(req.body);
-    res.json(newEnquiry);
+    res.send({
+      message: "Đã thêm enquiry mới thành công.",
+      data: newEnquiry,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -17,7 +20,10 @@ const updateEnquiry = asyncHandler(async (req, res) => {
     const updatedEnquiry = await Enquiry.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    res.json(updatedEnquiry);
+    res.send({
+      message: "Đã cập nhật enquiry thành công.",
+      data: updatedEnquiry,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -27,25 +33,31 @@ const deleteEnquiry = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const deletedEnquiry = await Enquiry.findByIdAndDelete(id);
-    res.json(deletedEnquiry);
+    res.send({
+      message: "Đã xóa enquiry thành công.",
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
-const getEnquiry = asyncHandler(async (req, res) => {
+const getEnquiryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const getaEnquiry = await Enquiry.findById(id);
-    res.json(getaEnquiry);
+    const getEnquiryDetail = await Enquiry.findById(id);
+    res.send({
+      data: getEnquiryDetail,
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
-const getallEnquiry = asyncHandler(async (req, res) => {
+const getAllEnquiry = asyncHandler(async (req, res) => {
   try {
-    const getallEnquiry = await Enquiry.find();
-    res.json(getallEnquiry);
+    const getListEnquiry = await Enquiry.find();
+    res.send({
+      data: getListEnquiry,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -54,6 +66,6 @@ module.exports = {
   createEnquiry,
   updateEnquiry,
   deleteEnquiry,
-  getEnquiry,
-  getallEnquiry,
+  getAllEnquiry,
+  getEnquiryById,
 };

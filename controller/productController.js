@@ -10,7 +10,10 @@ const createProduct = asyncHandler(async (req, res) => {
       req.body.slug = slugify(req.body.title);
     }
     const newProduct = await Product.create(req.body);
-    res.json(newProduct);
+    res.send({
+      message: "Đã thêm sản phẩm mới thành công.",
+      data: newProduct,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -26,7 +29,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     const updateProduct = await Product.findOneAndUpdate({ id }, req.body, {
       new: true,
     });
-    res.json(updateProduct);
+    res.send({
+      message: "Đã cập nhật sản phẩm thành công.",
+      data: updateProduct,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -37,18 +43,22 @@ const deleteProduct = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const deleteProduct = await Product.findOneAndDelete(id);
-    res.json(deleteProduct);
+    res.send({
+      message: "Đã xóa sản phẩm thành công.",
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
 
-const getaProduct = asyncHandler(async (req, res) => {
+const getProductById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
     const findProduct = await Product.findById(id);
-    res.json(findProduct);
+    res.send({
+      data: findProduct,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -56,7 +66,6 @@ const getaProduct = asyncHandler(async (req, res) => {
 
 const getAllProduct = asyncHandler(async (req, res) => {
   try {
-    // Filtering
     const queryObj = { ...req.query };
     const excludeFields = ["page", "sort", "limit", "fields"];
     excludeFields.forEach((el) => delete queryObj[el]);
@@ -64,17 +73,12 @@ const getAllProduct = asyncHandler(async (req, res) => {
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
     let query = Product.find(JSON.parse(queryStr));
-
-    // Sorting
-
     if (req.query.sort) {
       const sortBy = req.query.sort.split(",").join(" ");
       query = query.sort(sortBy);
     } else {
       query = query.sort("-createdAt");
     }
-
-    // limiting the fields
 
     if (req.query.fields) {
       const fields = req.query.fields.split(",").join(" ");
@@ -91,7 +95,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
     query = query.skip(skip).limit(limit);
     if (req.query.page) {
       const productCount = await Product.countDocuments();
-      if (skip >= productCount) throw new Error("This Page does not exists");
+      if (skip >= productCount) throw new Error("Trang này không tồn tại.");
     }
     const product = await query;
     res.json(product);
@@ -104,29 +108,21 @@ const addToWishlist = asyncHandler(async (req, res) => {
   const { prodId } = req.body;
   try {
     const user = await User.findById(_id);
-    const alreadyadded = user.wishlist.find((id) => id.toString() === prodId);
-    if (alreadyadded) {
+    const alreadyAdded = user.wishlist.find((id) => id.toString() === prodId);
+    if (alreadyAdded) {
       let user = await User.findByIdAndUpdate(
         _id,
-        {
-          $pull: { wishlist: prodId },
-        },
-        {
-          new: true,
-        }
+        { $pull: { wishlist: prodId } },
+        { new: true }
       );
-      res.json(user);
+      res.send({ data: user });
     } else {
       let user = await User.findByIdAndUpdate(
         _id,
-        {
-          $push: { wishlist: prodId },
-        },
-        {
-          new: true,
-        }
+        { $push: { wishlist: prodId } },
+        { new: true }
       );
-      res.json(user);
+      res.send({ data: user });
     }
   } catch (error) {
     throw new Error(error);
@@ -139,51 +135,37 @@ const rating = asyncHandler(async (req, res) => {
   try {
     const product = await Product.findById(prodId);
     let alreadyRated = product.ratings.find(
-      (userId) => userId.postedby.toString() === _id.toString()
+      (userId) => userId.postedBy.toString() === _id.toString()
     );
     if (alreadyRated) {
       const updateRating = await Product.updateOne(
-        {
-          ratings: { $elemMatch: alreadyRated },
-        },
-        {
-          $set: { "ratings.$.star": star, "ratings.$.comment": comment },
-        },
-        {
-          new: true,
-        }
+        { ratings: { $elemMatch: alreadyRated } },
+        { $set: { "ratings.$.star": star, "ratings.$.comment": comment } },
+        { new: true }
       );
     } else {
       const rateProduct = await Product.findByIdAndUpdate(
         prodId,
         {
-          $push: {
-            ratings: {
-              star: star,
-              comment: comment,
-              postedby: _id,
-            },
-          },
+          $push: { ratings: { star: star, comment: comment, postedBy: _id }, },
         },
-        {
-          new: true,
-        }
+        { new: true, }
       );
     }
-    const getallratings = await Product.findById(prodId);
-    let totalRating = getallratings.ratings.length;
-    let ratingsum = getallratings.ratings
+    const getAllRatings = await Product.findById(prodId);
+    let totalRating = getAllRatings.ratings.length;
+    let ratingSum = getAllRatings.ratings
       .map((item) => item.star)
       .reduce((prev, curr) => prev + curr, 0);
-    let actualRating = Math.round(ratingsum / totalRating);
-    let finalproduct = await Product.findByIdAndUpdate(
+    let actualRating = Math.round(ratingSum / totalRating);
+    let finalProduct = await Product.findByIdAndUpdate(
       prodId,
       {
-        totalrating: actualRating,
+        totalRating: actualRating,
       },
       { new: true }
     );
-    res.json(finalproduct);
+    res.send({ data: finalProduct });
   } catch (error) {
     throw new Error(error);
   }
@@ -191,7 +173,7 @@ const rating = asyncHandler(async (req, res) => {
 
 module.exports = {
   createProduct,
-  getaProduct,
+  getProductById,
   getAllProduct,
   updateProduct,
   deleteProduct,

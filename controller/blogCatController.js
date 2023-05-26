@@ -5,11 +5,15 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const createCategory = asyncHandler(async (req, res) => {
   try {
     const newCategory = await Category.create(req.body);
-    res.json(newCategory);
-  } catch (error) {
-    throw new Error(error);
+    res.send({
+      message: "Thêm category mới thành công.",
+      data: newCategory,
+    });
+  } catch (err) {
+    throw new Error(err);
   }
 });
+
 const updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
@@ -17,43 +21,55 @@ const updateCategory = asyncHandler(async (req, res) => {
     const updatedCategory = await Category.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    res.json(updatedCategory);
-  } catch (error) {
-    throw new Error(error);
+    res.send({
+      message: "Cập nhật category thành công.",
+      data: updatedCategory,
+    });
+  } catch (err) {
+    throw new Error(err);
   }
 });
+
 const deleteCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
     const deletedCategory = await Category.findByIdAndDelete(id);
-    res.json(deletedCategory);
-  } catch (error) {
-    throw new Error(error);
+    res.status(200).send({ message: "Đã xóa category thành công." });
+  } catch (err) {
+    throw new Error(err);
   }
 });
-const getCategory = asyncHandler(async (req, res) => {
+
+const getCategoryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const getaCategory = await Category.findById(id);
-    res.json(getaCategory);
+    const getCategoryById = await Category.findById(id);
+    res.status(200).send({
+      message: "Lấy thông tin chi tiết category thành công.",
+      data: getCategoryById
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
-const getallCategory = asyncHandler(async (req, res) => {
+
+const getAllCategory = asyncHandler(async (req, res) => {
   try {
-    const getallCategory = await Category.find();
-    res.json(getallCategory);
+    const getAllCategory = await Category.find();
+    res.status(200).json({
+      data: getAllCategory
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
+
 module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
-  getCategory,
-  getallCategory,
+  getCategoryById,
+  getAllCategory
 };

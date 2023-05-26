@@ -11,59 +11,50 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const { generateRefreshToken } = require("../config/refreshtoken");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const sendEmail = require("./emailCtrl");
+const sendEmail = require("./emailController");
 
-// Create a User ----------------------------------------------
-
+// Create a User
 const createUser = asyncHandler(async (req, res) => {
-  /**
-   * TODO:Get the email from req.body
-   */
   const email = req.body.email;
-  /**
-   * TODO:With the help of email find the user exists or not
-   */
   const findUser = await User.findOne({ email: email });
 
   if (!findUser) {
-    /**
-     * TODO:if user not found user create a new user
-     */
     const newUser = await User.create(req.body);
-    res.json(newUser);
+    res.send({
+      message: "Đã tạo người dùng mới thành công.",
+      data: newUser
+    });
   } else {
-    /**
-     * TODO:if user found then thow an error: User already exists
-     */
-    throw new Error("User Already Exists");
+    throw new Error("Người dùng đã tồn tại. Vui lòng tạo lại!!!");
   }
 });
 
 // Login a user
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  // check if user exists or not
   const findUser = await User.findOne({ email });
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id);
-    const updateuser = await User.findByIdAndUpdate(
+    const updateUser = await User.findByIdAndUpdate(
       findUser.id,
-      {
-        refreshToken: refreshToken,
-      },
+      { refreshToken: refreshToken, },
       { new: true }
     );
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 72 * 60 * 60 * 1000,
     });
-    res.json({
+    const info = {
       _id: findUser?._id,
-      firstname: findUser?.firstname,
-      lastname: findUser?.lastname,
+      firstName: findUser?.firstName,
+      lastName: findUser?.lastName,
       email: findUser?.email,
       mobile: findUser?.mobile,
       token: generateToken(findUser?._id),
+    }
+    res.send({
+      message: "Đăng nhập thành công.",
+      data: info
     });
   } else {
     throw new Error("Invalid Credentials");
@@ -71,32 +62,32 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 });
 
 // admin login
-
 const loginAdmin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  // check if user exists or not
   const findAdmin = await User.findOne({ email });
-  if (findAdmin.role !== "admin") throw new Error("Not Authorised");
+  if (findAdmin.role !== "admin") throw new Error("Bạn không có quyền truy cập.");
   if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findAdmin?._id);
-    const updateuser = await User.findByIdAndUpdate(
+    const updateUser = await User.findByIdAndUpdate(
       findAdmin.id,
-      {
-        refreshToken: refreshToken,
-      },
+      { refreshToken: refreshToken, },
       { new: true }
     );
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 72 * 60 * 60 * 1000,
     });
-    res.json({
+    const info = {
       _id: findAdmin?._id,
-      firstname: findAdmin?.firstname,
-      lastname: findAdmin?.lastname,
+      firstName: findAdmin?.firstName,
+      lastName: findAdmin?.lastName,
       email: findAdmin?.email,
       mobile: findAdmin?.mobile,
       token: generateToken(findAdmin?._id),
+    }
+    res.send({
+      message: "Đăng nhập thành công.",
+      data: info
     });
   } else {
     throw new Error("Invalid Credentials");
@@ -104,7 +95,6 @@ const loginAdmin = asyncHandler(async (req, res) => {
 });
 
 // handle refresh token
-
 const handleRefreshToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
   if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies");
@@ -121,7 +111,6 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
 });
 
 // logout functionality
-
 const logout = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
   if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies");
@@ -145,90 +134,75 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 // Update a user
-
 const updatedUser = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   validateMongoDbId(_id);
-
   try {
     const updatedUser = await User.findByIdAndUpdate(
       _id,
       {
-        firstname: req?.body?.firstname,
-        lastname: req?.body?.lastname,
+        firstName: req?.body?.firstName,
+        lastName: req?.body?.lastName,
         email: req?.body?.email,
         mobile: req?.body?.mobile,
       },
-      {
-        new: true,
-      }
+      { new: true }
     );
-    res.json(updatedUser);
+    res.send({
+      message: "Cập nhật thông tin người dùng thành công.",
+      data: updatedUser
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
 
 // save user Address
-
 const saveAddress = asyncHandler(async (req, res, next) => {
   const { _id } = req.user;
   validateMongoDbId(_id);
-
   try {
     const updatedUser = await User.findByIdAndUpdate(
-      _id,
-      {
-        address: req?.body?.address,
-      },
-      {
-        new: true,
-      }
+      _id, { address: req?.body?.address }, { new: true }
     );
-    res.json(updatedUser);
+    res.send({
+      message: "Đã cập nhật địa chỉ của người dùng thành công.",
+      data: updatedUser
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
 
 // Get all users
-
-const getallUser = asyncHandler(async (req, res) => {
+const getAllUser = asyncHandler(async (req, res) => {
   try {
     const getUsers = await User.find().populate("wishlist");
-    res.json(getUsers);
+    res.send({ data: getUsers });
   } catch (error) {
     throw new Error(error);
   }
 });
 
 // Get a single user
-
-const getaUser = asyncHandler(async (req, res) => {
+const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
-
   try {
-    const getaUser = await User.findById(id);
-    res.json({
-      getaUser,
-    });
+    const getUserDetail = await User.findById(id);
+    res.send({ data: getUserDetail });
   } catch (error) {
     throw new Error(error);
   }
 });
 
-// Get a single user
-
-const deleteaUser = asyncHandler(async (req, res) => {
+//delete a user
+const deleteUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
-
   try {
-    const deleteaUser = await User.findByIdAndDelete(id);
-    res.json({
-      deleteaUser,
-    });
+    const deleteOneUser = await User.findByIdAndDelete(id);
+    res.send({ message: "Đã xóa người dùng thành công." });
   } catch (error) {
     throw new Error(error);
   }
@@ -237,18 +211,14 @@ const deleteaUser = asyncHandler(async (req, res) => {
 const blockUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
-
   try {
-    const blockusr = await User.findByIdAndUpdate(
-      id,
-      {
-        isBlocked: true,
-      },
-      {
-        new: true,
-      }
+    const blockUser = await User.findByIdAndUpdate(
+      id, { isBlocked: true }, { new: true }
     );
-    res.json(blockusr);
+    res.send({
+      message: "Đã chặn người dùng thành công.",
+      data: blockUser
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -257,19 +227,13 @@ const blockUser = asyncHandler(async (req, res) => {
 const unblockUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
-
   try {
-    const unblock = await User.findByIdAndUpdate(
-      id,
-      {
-        isBlocked: false,
-      },
-      {
-        new: true,
-      }
+    const unblockUser = await User.findByIdAndUpdate(
+      id, { isBlocked: false }, { new: true }
     );
-    res.json({
-      message: "User UnBlocked",
+    res.send({
+      message: "Đã mở khóa người dùng thành công.",
+      data: unblockUser
     });
   } catch (error) {
     throw new Error(error);
@@ -284,16 +248,23 @@ const updatePassword = asyncHandler(async (req, res) => {
   if (password) {
     user.password = password;
     const updatedPassword = await user.save();
+    res.send({
+      message: "Cập nhật mật khẩu thành công",
+      data: updatedPassword
+    });
     res.json(updatedPassword);
   } else {
-    res.json(user);
+    res.send({
+      message: "Cập nhật mật khẩu thất bại",
+      data: user
+    });
   }
 });
 
 const forgotPasswordToken = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
-  if (!user) throw new Error("User not found with this email");
+  if (!user) throw new Error("Không tìm thấy người dùng với email này.");
   try {
     const token = await user.createPasswordResetToken();
     await user.save();
@@ -319,19 +290,19 @@ const resetPassword = asyncHandler(async (req, res) => {
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
   });
-  if (!user) throw new Error(" Token Expired, Please try again later");
+  if (!user) throw new Error("Token Expired, Please try again later");
   user.password = password;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
-  res.json(user);
+  res.send({ data: user });
 });
 
 const getWishlist = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   try {
     const findUser = await User.findById(_id).populate("wishlist");
-    res.json(findUser);
+    res.send({ data: findUser });
   } catch (error) {
     throw new Error(error);
   }
@@ -367,7 +338,7 @@ const userCart = asyncHandler(async (req, res) => {
       cartTotal,
       orderby: user?._id,
     }).save();
-    res.json(newCart);
+    res.send({ data: newCart });
   } catch (error) {
     throw new Error(error);
   }
@@ -380,7 +351,7 @@ const getUserCart = asyncHandler(async (req, res) => {
     const cart = await Cart.findOne({ orderby: _id }).populate(
       "products.product"
     );
-    res.json(cart);
+    res.send({ data: cart });
   } catch (error) {
     throw new Error(error);
   }
@@ -392,7 +363,7 @@ const emptyCart = asyncHandler(async (req, res) => {
   try {
     const user = await User.findOne({ _id });
     const cart = await Cart.findOneAndRemove({ orderby: user._id });
-    res.json(cart);
+    res.send({ message: "Đã xóa sản phẩm trong giỏ hàng thành công.", data: cart });
   } catch (error) {
     throw new Error(error);
   }
@@ -411,15 +382,9 @@ const applyCoupon = asyncHandler(async (req, res) => {
     orderby: user._id,
   }).populate("products.product");
   let totalAfterDiscount = (
-    cartTotal -
-    (cartTotal * validCoupon.discount) / 100
-  ).toFixed(2);
-  await Cart.findOneAndUpdate(
-    { orderby: user._id },
-    { totalAfterDiscount },
-    { new: true }
-  );
-  res.json(totalAfterDiscount);
+    cartTotal - (cartTotal * validCoupon.discount) / 100).toFixed(2);
+  await Cart.findOneAndUpdate({ orderby: user._id }, { totalAfterDiscount }, { new: true });
+  res.send({ data: totalAfterDiscount });
 });
 
 const createOrder = asyncHandler(async (req, res) => {
@@ -427,14 +392,14 @@ const createOrder = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   validateMongoDbId(_id);
   try {
-    if (!COD) throw new Error("Create cash order failed");
+    if (!COD) throw new Error("Tạo đơn đặt hàng tiền mặt không thành công.");
     const user = await User.findById(_id);
     let userCart = await Cart.findOne({ orderby: user._id });
-    let finalAmout = 0;
+    let finalAmount = 0;
     if (couponApplied && userCart.totalAfterDiscount) {
-      finalAmout = userCart.totalAfterDiscount;
+      finalAmount = userCart.totalAfterDiscount;
     } else {
-      finalAmout = userCart.cartTotal;
+      finalAmount = userCart.cartTotal;
     }
 
     let newOrder = await new Order({
@@ -442,7 +407,7 @@ const createOrder = asyncHandler(async (req, res) => {
       paymentIntent: {
         id: uniqid(),
         method: "COD",
-        amount: finalAmout,
+        amount: finalAmount,
         status: "Cash on Delivery",
         created: Date.now(),
         currency: "usd",
@@ -459,7 +424,7 @@ const createOrder = asyncHandler(async (req, res) => {
       };
     });
     const updated = await Product.bulkWrite(update, {});
-    res.json({ message: "success" });
+    res.send({ message: "Tạo đơn đặt hàng tiền mặt thành công." });
   } catch (error) {
     throw new Error(error);
   }
@@ -469,11 +434,11 @@ const getOrders = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   validateMongoDbId(_id);
   try {
-    const userorders = await Order.findOne({ orderby: _id })
+    const userOrders = await Order.findOne({ orderby: _id })
       .populate("products.product")
       .populate("orderby")
       .exec();
-    res.json(userorders);
+    res.send({ data: userOrders });
   } catch (error) {
     throw new Error(error);
   }
@@ -481,11 +446,11 @@ const getOrders = asyncHandler(async (req, res) => {
 
 const getAllOrders = asyncHandler(async (req, res) => {
   try {
-    const alluserorders = await Order.find()
+    const allUserOrders = await Order.find()
       .populate("products.product")
       .populate("orderby")
       .exec();
-    res.json(alluserorders);
+    res.send({ data: allUserOrders });
   } catch (error) {
     throw new Error(error);
   }
@@ -494,11 +459,11 @@ const getOrderByUserId = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const userorders = await Order.findOne({ orderby: id })
+    const userOrders = await Order.findOne({ orderby: id })
       .populate("products.product")
       .populate("orderby")
       .exec();
-    res.json(userorders);
+    res.send({ data: userOrders });
   } catch (error) {
     throw new Error(error);
   }
@@ -512,9 +477,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       id,
       {
         orderStatus: status,
-        paymentIntent: {
-          status: status,
-        },
+        paymentIntent: { status: status },
       },
       { new: true }
     );
@@ -527,9 +490,9 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 module.exports = {
   createUser,
   loginUserCtrl,
-  getallUser,
-  getaUser,
-  deleteaUser,
+  getAllUser,
+  getUserById,
+  deleteUserById,
   updatedUser,
   blockUser,
   unblockUser,
