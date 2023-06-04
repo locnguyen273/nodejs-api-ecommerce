@@ -1,4 +1,3 @@
-const bodyParser = require("body-parser");
 const express = require("express");
 const dbConnect = require("./config/dbConnect");
 const dotenv = require("dotenv").config();
@@ -42,7 +41,6 @@ app.use(morgan("dev"));
 app.use(cors({
   credentials: true,
 }));
-app.use(bodyParser.json());
 app.use(cookieParser());
 
 const swaggerSpec = swaggerJSDoc(options);
