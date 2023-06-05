@@ -49,6 +49,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       firstName: findUser?.firstName,
       lastName: findUser?.lastName,
       email: findUser?.email,
+      role: findUser?.role,
       mobile: findUser?.mobile,
       token: generateToken(findUser?._id),
     }
@@ -82,6 +83,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
       firstName: findAdmin?.firstName,
       lastName: findAdmin?.lastName,
       email: findAdmin?.email,
+      role: findAdmin?.role,
       mobile: findAdmin?.mobile,
       token: generateToken(findAdmin?._id),
     }
