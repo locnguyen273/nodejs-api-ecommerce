@@ -1,12 +1,9 @@
+const bodyParser = require("body-parser");
 const express = require("express");
 const dbConnect = require("./config/dbConnect");
-const dotenv = require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const cors = require("cors");
-const swaggerJSDoc = require("swagger-jsdoc");
-const swaggerUI = require("swagger-ui-express");
-const PORT = process.env.PORT;
 
 //import routes
 const blogCategoryRouter = require("./routes/blogCategoryRoute");
@@ -21,30 +18,15 @@ const productRouter = require("./routes/productRoute");
 const uploadRouter = require("./routes/uploadRoute");
 
 const app = express();
+const dotenv = require("dotenv").config();
+const PORT = process.env.PORT;
+
 dbConnect();
-
-const options = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "NodeJS API for Project",
-      version: "1.0.0"
-    },
-    servers: [
-      { url: "http://localhost:5000/" }
-    ]
-  },
-  apis: ["./index.js"]
-}
-
 app.use(morgan("dev"));
-app.use(cors({
-  credentials: true,
-}));
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-const swaggerSpec = swaggerJSDoc(options);
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 app.use("/api/user", authRouter);
 app.use("/api/product", productRouter);

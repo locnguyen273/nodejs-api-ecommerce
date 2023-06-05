@@ -8,7 +8,7 @@ const {
   likeTheBlog,
   dislikeTheBlog,
   uploadImages
-} = require("../controller/blogController");
+} = require("../controllers/blogController");
 const { 
   authMiddleware, 
   isAdmin 

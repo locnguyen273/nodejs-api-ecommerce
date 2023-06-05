@@ -24,7 +24,7 @@ const {
   getOrders,
   updateOrderStatus,
   getAllOrders,
-} = require("../controller/userController");
+} = require("../controllers/userController");
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
