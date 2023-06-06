@@ -137,16 +137,18 @@ const logout = asyncHandler(async (req, res) => {
 
 // Update a user
 const updatedUser = asyncHandler(async (req, res) => {
-  const { _id } = req.user;
-  validateMongoDbId(_id);
+  const { id } = req.body;
+  validateMongoDbId(id);
   try {
     const updatedUser = await User.findByIdAndUpdate(
-      _id,
+      id,
       {
-        firstName: req?.body?.firstName,
-        lastName: req?.body?.lastName,
+        fullName: req?.body?.fullName,
+        address: req?.body?.address,
         email: req?.body?.email,
         mobile: req?.body?.mobile,
+        isBlocked: req?.body?.isBlocked,
+        role: req?.body?.role,
       },
       { new: true }
     );

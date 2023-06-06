@@ -2,13 +2,19 @@ const { default: mongoose } = require("mongoose");
 
 mongoose.set("strictQuery", false);
 const dbConnect = () => {
-  try {
-    const connect = mongoose.connect(process.env.MONGODB_URL);
-    console.log("Database Connected Successfully");
-    return connect;
-  } catch (error) {
-    console.log("Database error");
-  }
+  mongoose
+    .connect(process.env.MONGODB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => {
+      console.log("Successfully connected to database");
+    })
+    .catch((error) => {
+      console.log("database connection failed. exiting now...");
+      console.error(error);
+      process.exit(1);
+    });
 };
 
 module.exports = dbConnect;
