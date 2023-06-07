@@ -25,7 +25,7 @@ const {
   updateOrderStatus,
   getAllOrders,
 } = require("../controllers/userController");
-const { authMiddleware, isAdmin, verifyToken } = require("../middlewares/authMiddleware");
+const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
 // Role Admin
@@ -39,9 +39,6 @@ router.put("/reset-password/:token", resetPassword);
 router.put("/password", authMiddleware, updatePassword);
 router.get("/refresh", handleRefreshToken);
 router.get("/logout", logout);
-router.post("/welcome", verifyToken, (req, res) => {
-  res.status(200).send("Welcome !!!");
-})
 
 router.get("/all-users", getAllUser);
 router.get("/:id", authMiddleware, isAdmin, getUserById);

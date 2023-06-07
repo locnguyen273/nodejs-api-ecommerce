@@ -14,7 +14,7 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
         next();
       }
     } catch (err) {
-      throw new Error("Không có quyền truy cập hoặc token hết hạn. Vui lòng đăng nhập lại.")
+      throw new Error("Không có quyền truy cập hoặc token hết hạn. Vui lòng đăng nhập lại.");
     }
   } else {
     throw new Error("Không có token trong header");
@@ -31,20 +31,5 @@ const isAdmin = asyncHandler(async (req, res, next) => {
   }
 });
 
-const verifyToken = (req, res, next) => {
-  const token =
-    req.body.refreshToken || req.query.refreshToken || req.headers["x-access-token"];
 
-  if (!token) {
-    return res.status(403).send("A token is required for authentication");
-  }
-  try {
-    const decoded = jwt.verify(token, process.env.TOKEN_KEY);
-    req.user = decoded;
-  } catch (err) {
-    return res.status(401).send("Invalid Token");
-  }
-  return next();
-};
-
-module.exports = { authMiddleware, isAdmin, verifyToken };
+module.exports = { authMiddleware, isAdmin };
