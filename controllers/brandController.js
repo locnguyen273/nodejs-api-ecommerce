@@ -5,7 +5,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const jwt = require("jsonwebtoken");
 
 const createBrand = asyncHandler(async (req, res) => {
-  const userId = jwt.decode(req.cookies?.refreshToken).id;
+  const userId = jwt.decode(req.headers.refreshtoken).id;
   const { title } = req.body;
   const existedBrand = await Brand.findOne({ title });
   const userExisted = await User.findById(userId);
@@ -50,7 +50,7 @@ const deleteBrand = asyncHandler(async (req, res) => {
   try {
     const deletedBrand = await Brand.findByIdAndDelete(id);
     res.send({
-      message: "Đã xóa brand thành công.",
+      message: "Đã xóa nhãn hiệu thành công.",
     });
   } catch (error) {
     throw new Error(error);
