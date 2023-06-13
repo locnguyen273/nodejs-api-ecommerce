@@ -3,16 +3,37 @@ const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const { cloudinaryUploadImg } = require("../utils/cloudinary");
 
 const createProduct = asyncHandler(async (req, res) => {
   try {
-    if (req.body.title) {
-      req.body.slug = slugify(req.body.title);
+    const uploader = (path) => cloudinaryUploadImg(path, "images");
+    const urls = [];
+    const urlsClone = [];
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file;
+      const newpath = await uploader(path);
+      urls.push(newpath);
     }
-    const newProduct = await Product.create(req.body);
+    urls.forEach((item) => {
+      urlsClone.push(item.url);
+    });
+    let product = new Product({
+      name: req.body.name,
+      description: req.body.description,
+      brand: req.body.brand,
+      price: req.body.price,
+      category: req.body.category,
+      quantity: req.body.quantity,
+      images: urlsClone,
+    });
+    product = await product.save();
+    if (!product) return res.status(500).send("Sản phẩm không được tạo.");
+
     res.send({
       message: "Đã thêm sản phẩm mới thành công.",
-      data: newProduct,
+      data: product,
     });
   } catch (error) {
     throw new Error(error);
@@ -147,9 +168,9 @@ const rating = asyncHandler(async (req, res) => {
       const rateProduct = await Product.findByIdAndUpdate(
         prodId,
         {
-          $push: { ratings: { star: star, comment: comment, postedBy: _id }, },
+          $push: { ratings: { star: star, comment: comment, postedBy: _id } },
         },
-        { new: true, }
+        { new: true }
       );
     }
     const getAllRatings = await Product.findById(prodId);

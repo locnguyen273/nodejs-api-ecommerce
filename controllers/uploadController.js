@@ -8,20 +8,19 @@ const {
 
 const uploadImages = asyncHandler(async (req, res) => {
   try {
-    const uploader = (path) => cloudinaryUploadImg(path, "images");
+    const uploader = async (path) => await cloudinaryUploadImg(path, "images");
     const urls = [];
     const files = req.files;
     for (const file of files) {
       const { path } = file;
       const newpath = await uploader(path);
-      console.log(newpath);
       urls.push(newpath);
       fs.unlinkSync(path);
     }
-    const images = urls.map((file) => {
-      return file;
+    res.status(200).json({
+      message: "Uploaded images were successfully",
+      data: urls,
     });
-    res.json(images);
   } catch (error) {
     throw new Error(error);
   }

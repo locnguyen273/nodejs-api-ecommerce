@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 });
 
 const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image")) {
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
     cb(null, true);
   } else {
     cb({ message: "Unsupported file format" }, false);
@@ -23,7 +23,7 @@ const multerFilter = (req, file, cb) => {
 const uploadPhoto = multer({
   storage: storage,
   fileFilter: multerFilter,
-  limits: { fileSize: 1000000 },
+  limits: { fileSize: 1024 * 1024 },
 });
 
 const productImgResize = async (req, res, next) => {
@@ -34,8 +34,8 @@ const productImgResize = async (req, res, next) => {
         .resize(300, 300)
         .toFormat("jpeg")
         .jpeg({ quality: 90 })
-        .toFile(`public/images/products/${file.filename}`);
-      fs.unlinkSync(`public/images/products/${file.filename}`);
+        // .toFile(`public/images/${file.filename}`);
+      // fs.unlinkSync(`public/images/${file.filename}`);
     })
   );
   next();
