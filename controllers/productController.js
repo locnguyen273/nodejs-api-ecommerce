@@ -123,7 +123,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
       if (skip >= productCount) throw new Error("Trang này không tồn tại.");
     }
     const product = await query;
-    res.json(product);
+    res.send({ data: product });
   } catch (error) {
     throw new Error(error);
   }
