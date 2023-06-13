@@ -8,7 +8,7 @@ router.post(
   "/",
   authMiddleware,
   isAdmin,
-  uploadPhoto.array("images", 10),
+  uploadPhoto.array("image"),
   productImgResize,
   uploadImages
 );
