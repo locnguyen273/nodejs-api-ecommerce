@@ -19,8 +19,12 @@ const createProduct = asyncHandler(async (req, res) => {
     urls.forEach((item) => {
       urlsClone.push(item.url);
     });
+    if (req.body.name) {
+      req.body.slug = slugify(req.body.name);
+    }
     let product = new Product({
       name: req.body.name,
+      slug: req.body.slug,
       description: req.body.description,
       brand: req.body.brand,
       price: req.body.price,
