@@ -7,18 +7,18 @@ const { cloudinaryUploadImg } = require("../utils/cloudinary");
 
 const createProduct = asyncHandler(async (req, res) => {
   try {
-    const uploader = (path) => cloudinaryUploadImg(path, "images");
-    const urls = [];
-    const urlsClone = [];
-    const files = req.files;
-    for (const file of files) {
-      const { path } = file;
-      const newpath = await uploader(path);
-      urls.push(newpath);
-    }
-    urls.forEach((item) => {
-      urlsClone.push(item.url);
-    });
+    // const uploader = (path) => cloudinaryUploadImg(path, "images");
+    // const urls = [];
+    // const urlsClone = [];
+    // const files = req.files;
+    // for (const file of files) {
+    //   const { path } = file;
+    //   const newpath = await uploader(path);
+    //   urls.push(newpath);
+    // }
+    // urls.forEach((item) => {
+    //   urlsClone.push(item.url);
+    // });
     if (req.body.name) {
       req.body.slug = slugify(req.body.name);
     }
@@ -30,7 +30,7 @@ const createProduct = asyncHandler(async (req, res) => {
       price: req.body.price,
       category: req.body.category,
       quantity: req.body.quantity,
-      images: urlsClone,
+      images: req.body.images,
     });
     product = await product.save();
     if (!product) return res.status(500).send("Sản phẩm không được tạo.");
