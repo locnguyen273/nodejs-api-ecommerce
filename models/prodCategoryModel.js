@@ -2,12 +2,13 @@ const mongoose = require("mongoose");
 
 var prodCategorySchema = new mongoose.Schema(
   {
-    title: {
+    name: {
       type: String,
       required: true,
       unique: true,
       index: true,
     },
+    createdBy: { type: String },
   },
   {
     timestamps: true,
