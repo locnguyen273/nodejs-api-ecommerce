@@ -6,14 +6,14 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 
 const createColor = asyncHandler(async (req, res) => {
   const userId = jwt.decode(req.headers.refreshtoken).id;
-  const { colorName, colorValue } = req.body;
+  const { colorName } = req.body;
   const existedColor = await Color.findOne({ colorName });
   const userExisted = await User.findById(userId);
   try {
     if (!existedColor) {
       let newData = {
         colorName,
-        colorValue,
+        colorValue: req.body.colorValue,
         createdBy: userExisted?.fullName
       }
       const newColor = await Color.create(newData);
