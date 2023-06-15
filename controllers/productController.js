@@ -31,6 +31,7 @@ const createProduct = asyncHandler(async (req, res) => {
       category: req.body.category,
       quantity: req.body.quantity,
       images: req.body.images,
+      colors: req.body.colors,
     });
     product = await product.save();
     if (!product) return res.status(500).send("Sản phẩm không được tạo.");
