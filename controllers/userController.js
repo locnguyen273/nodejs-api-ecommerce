@@ -53,7 +53,8 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       mobile: findUser?.mobile,
       token: generateToken(findUser?._id),
     }
-    res.send({
+    res.status(200).send({
+      status: true,
       message: "Đăng nhập thành công.",
       data: info
     });
