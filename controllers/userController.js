@@ -46,8 +46,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     });
     const info = {
       _id: findUser?._id,
-      firstName: findUser?.firstName,
-      lastName: findUser?.lastName,
+      fullName: findUser?.fullName,
       email: findUser?.email,
       role: findUser?.role,
       mobile: findUser?.mobile,
