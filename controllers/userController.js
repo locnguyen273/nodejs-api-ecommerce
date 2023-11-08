@@ -15,17 +15,32 @@ const sendEmail = require("./emailController");
 
 // Create a User
 const createUser = asyncHandler(async (req, res) => {
-  const email = req.body.email;
+  const { email, password, fullName, mobile, address } = req.body;
   const findUser = await User.findOne({ email: email });
-
-  if (!findUser) {
-    const newUser = await User.create(req.body);
-    res.send({
-      message: "Đã tạo người dùng mới thành công.",
-      data: newUser
+  try {
+    if (!email || !password || !fullName || !mobile || !address) {
+      return res.status(400).send({
+        status: false,
+        message: "Không được bỏ trống các thông tin. Vui lòng tạo lại.",
+      });
+    } else if (!findUser) {
+      const newUser = await User.create(req.body);
+      res.status(201).send({
+        status: true,
+        message: "Đã tạo người dùng mới thành công.",
+        data: newUser,
+      });
+    } else if (findUser) {
+      return res.status(400).send({
+        status: false,
+        message: 'Người dùng đã tồn tại. Vui lòng tạo lại.',
+      });
+    }
+  } catch (error) {
+    return res.status(400).send({
+      status: false,
+      message: error.message,
     });
-  } else {
-    throw new Error("Người dùng đã tồn tại. Vui lòng tạo lại!!!");
   }
 });
 
@@ -33,32 +48,42 @@ const createUser = asyncHandler(async (req, res) => {
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const findUser = await User.findOne({ email });
-  if (findUser && (await findUser.isPasswordMatched(password))) {
-    const refreshToken = await generateRefreshToken(findUser?._id);
-    const updateUser = await User.findByIdAndUpdate(
-      findUser.id,
-      { refreshToken: refreshToken, },
-      { new: true }
-    );
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      maxAge: 72 * 60 * 60 * 1000,
-    });
-    const info = {
-      _id: findUser?._id,
-      firstName: findUser?.firstName,
-      lastName: findUser?.lastName,
-      email: findUser?.email,
-      role: findUser?.role,
-      mobile: findUser?.mobile,
-      token: generateToken(findUser?._id),
+  try {
+    if (findUser && (await findUser.isPasswordMatched(password))) {
+      const refreshToken = await generateRefreshToken(findUser?._id);
+      const updateUser = await User.findByIdAndUpdate(
+        findUser.id,
+        { refreshToken: refreshToken },
+        { new: true }
+      );
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        maxAge: 72 * 60 * 60 * 1000,
+      });
+      const info = {
+        _id: findUser?._id,
+        fullName: findUser?.fullName,
+        email: findUser?.email,
+        role: findUser?.role,
+        mobile: findUser?.mobile,
+        token: generateToken(findUser?._id),
+      };
+      res.status(200).send({
+        status: true,
+        message: "Đăng nhập thành công.",
+        data: info,
+      });
+    } else {
+      return res.status(400).send({
+        status: false,
+        message: "Sai tài khoản hoặc mật khẩu. Vui lòng thử lại sau.",
+      });
     }
-    res.send({
-      message: "Đăng nhập thành công.",
-      data: info
+  } catch(error) {
+    return res.status(400).send({
+      status: false,
+      message: error.message,
     });
-  } else {
-    throw new Error("Invalid Credentials");
   }
 });
 
@@ -66,12 +91,13 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 const loginAdmin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const findAdmin = await User.findOne({ email });
-  if (findAdmin.role !== "admin") throw new Error("Bạn không có quyền truy cập.");
+  if (findAdmin.role !== "admin")
+    throw new Error("Bạn không có quyền truy cập.");
   if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findAdmin?._id);
     const updateUser = await User.findByIdAndUpdate(
       findAdmin.id,
-      { refreshToken: refreshToken, },
+      { refreshToken: refreshToken },
       { new: true }
     );
     res.cookie("refreshToken", refreshToken, {
@@ -86,10 +112,10 @@ const loginAdmin = asyncHandler(async (req, res) => {
       role: findAdmin?.role,
       mobile: findAdmin?.mobile,
       token: generateToken(findAdmin?._id),
-    }
+    };
     res.send({
       message: "Đăng nhập thành công.",
-      data: info
+      data: info,
     });
   } else {
     throw new Error("Invalid Credentials");
@@ -154,7 +180,7 @@ const updatedUser = asyncHandler(async (req, res) => {
     );
     res.send({
       message: "Cập nhật thông tin người dùng thành công.",
-      data: updatedUser
+      data: updatedUser,
     });
   } catch (error) {
     throw new Error(error);
@@ -167,11 +193,13 @@ const saveAddress = asyncHandler(async (req, res, next) => {
   validateMongoDbId(_id);
   try {
     const updatedUser = await User.findByIdAndUpdate(
-      _id, { address: req?.body?.address }, { new: true }
+      _id,
+      { address: req?.body?.address },
+      { new: true }
     );
     res.send({
       message: "Đã cập nhật địa chỉ của người dùng thành công.",
-      data: updatedUser
+      data: updatedUser,
     });
   } catch (error) {
     throw new Error(error);
@@ -217,11 +245,13 @@ const blockUser = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const blockUser = await User.findByIdAndUpdate(
-      id, { isBlocked: true }, { new: true }
+      id,
+      { isBlocked: true },
+      { new: true }
     );
     res.send({
       message: "Đã chặn người dùng thành công.",
-      data: blockUser
+      data: blockUser,
     });
   } catch (error) {
     throw new Error(error);
@@ -233,11 +263,13 @@ const unblockUser = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const unblockUser = await User.findByIdAndUpdate(
-      id, { isBlocked: false }, { new: true }
+      id,
+      { isBlocked: false },
+      { new: true }
     );
     res.send({
       message: "Đã mở khóa người dùng thành công.",
-      data: unblockUser
+      data: unblockUser,
     });
   } catch (error) {
     throw new Error(error);
@@ -254,13 +286,13 @@ const updatePassword = asyncHandler(async (req, res) => {
     const updatedPassword = await user.save();
     res.send({
       message: "Cập nhật mật khẩu thành công",
-      data: updatedPassword
+      data: updatedPassword,
     });
     res.json(updatedPassword);
   } else {
     res.send({
       message: "Cập nhật mật khẩu thất bại",
-      data: user
+      data: user,
     });
   }
 });
@@ -367,7 +399,10 @@ const emptyCart = asyncHandler(async (req, res) => {
   try {
     const user = await User.findOne({ _id });
     const cart = await Cart.findOneAndRemove({ orderby: user._id });
-    res.send({ message: "Đã xóa sản phẩm trong giỏ hàng thành công.", data: cart });
+    res.send({
+      message: "Đã xóa sản phẩm trong giỏ hàng thành công.",
+      data: cart,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -386,8 +421,14 @@ const applyCoupon = asyncHandler(async (req, res) => {
     orderby: user._id,
   }).populate("products.product");
   let totalAfterDiscount = (
-    cartTotal - (cartTotal * validCoupon.discount) / 100).toFixed(2);
-  await Cart.findOneAndUpdate({ orderby: user._id }, { totalAfterDiscount }, { new: true });
+    cartTotal -
+    (cartTotal * validCoupon.discount) / 100
+  ).toFixed(2);
+  await Cart.findOneAndUpdate(
+    { orderby: user._id },
+    { totalAfterDiscount },
+    { new: true }
+  );
   res.send({ data: totalAfterDiscount });
 });
 
