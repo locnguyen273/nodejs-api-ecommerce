@@ -106,14 +106,14 @@ const loginAdmin = asyncHandler(async (req, res) => {
     });
     const info = {
       _id: findAdmin?._id,
-      firstName: findAdmin?.firstName,
-      lastName: findAdmin?.lastName,
+      fullName: findAdmin?.fullName,
       email: findAdmin?.email,
       role: findAdmin?.role,
       mobile: findAdmin?.mobile,
       token: generateToken(findAdmin?._id),
     };
-    res.send({
+    res.status(200).send({
+      status: true,
       message: "Đăng nhập thành công.",
       data: info,
     });
@@ -210,7 +210,11 @@ const saveAddress = asyncHandler(async (req, res, next) => {
 const getAllUser = asyncHandler(async (req, res) => {
   try {
     const getUsers = await User.find().populate("wishlist");
-    res.send({ data: getUsers });
+    res.status(200).send({ 
+      data: getUsers,
+      total: getUsers.length,
+      status: true
+    });
   } catch (error) {
     throw new Error(error);
   }
