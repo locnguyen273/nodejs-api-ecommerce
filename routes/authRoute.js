@@ -40,9 +40,9 @@ router.put("/password", authMiddleware, updatePassword);
 router.get("/refresh", handleRefreshToken);
 router.get("/logout", logout);
 
-router.get("/all-users", getAllUser);
-router.get("/:id", authMiddleware, isAdmin, getUserById);
-router.delete("/:id", deleteUserById);
+router.get("/all-users", authMiddleware, isAdmin, getAllUser);
+router.get("/:id", authMiddleware, getUserById);
+router.delete("/:id", authMiddleware, isAdmin, deleteUserById);
 router.patch("/edit-user/:id", authMiddleware, updatedUser);
 router.put("/save-address", authMiddleware, saveAddress);
 router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
@@ -53,12 +53,7 @@ router.post("/cart/apply-coupon", authMiddleware, applyCoupon);
 router.post("/cart/cash-order", authMiddleware, createOrder);
 router.get("/cart", authMiddleware, getUserCart);
 router.delete("/empty-cart", authMiddleware, emptyCart);
-router.put(
-  "/order/update-order/:id",
-  authMiddleware,
-  isAdmin,
-  updateOrderStatus
-);
+router.put("/order/update-order/:id", authMiddleware, isAdmin, updateOrderStatus);
 
 router.get("/get-all-orders", authMiddleware, isAdmin, getAllOrders);
 router.get("/get-orders", authMiddleware, getOrders);
