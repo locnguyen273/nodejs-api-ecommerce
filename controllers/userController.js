@@ -239,7 +239,10 @@ const deleteUserById = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const deleteOneUser = await User.findByIdAndDelete(id);
-    res.send({ message: "Đã xóa người dùng thành công." });
+    res.status(200).send({ 
+      status: true,
+      message: "Đã xóa người dùng thành công." 
+    });
   } catch (error) {
     throw new Error(error);
   }

@@ -34,9 +34,13 @@ const createProduct = asyncHandler(async (req, res) => {
       colors: req.body.colors,
     });
     product = await product.save();
-    if (!product) return res.status(500).send("Sản phẩm không được tạo.");
+    if (!product) return res.status(500).send({
+      status: false,
+      message: "Sản phẩm không được tạo."
+    });
 
-    res.send({
+    res.status(201).send({
+      status: true,
       message: "Đã thêm sản phẩm mới thành công.",
       data: product,
     });
@@ -55,7 +59,8 @@ const updateProduct = asyncHandler(async (req, res) => {
     const updateProduct = await Product.findOneAndUpdate({ id }, req.body, {
       new: true,
     });
-    res.send({
+    res.status(200).send({
+      status: true,
       message: "Đã cập nhật sản phẩm thành công.",
       data: updateProduct,
     });
@@ -69,7 +74,8 @@ const deleteProduct = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const deleteProduct = await Product.findOneAndDelete(id);
-    res.send({
+    res.status(200).send({
+      status: true,
       message: "Đã xóa sản phẩm thành công.",
     });
   } catch (error) {
@@ -82,7 +88,8 @@ const getProductById = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const findProduct = await Product.findById(id);
-    res.send({
+    res.status(200).send({
+      status: true,
       data: findProduct,
     });
   } catch (error) {
@@ -98,33 +105,40 @@ const getAllProduct = asyncHandler(async (req, res) => {
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
-    let query = Product.find(JSON.parse(queryStr));
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(",").join(" ");
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort("-createdAt");
-    }
+    let query = Product.find();
+    // if (req.query.sort) {
+    //   const sortBy = req.query.sort.split(",").join(" ");
+    //   query = query.sort(sortBy);
+    // } else {
+    //   query = query.sort("-createdAt");
+    // }
 
-    if (req.query.fields) {
-      const fields = req.query.fields.split(",").join(" ");
-      query = query.select(fields);
-    } else {
-      query = query.select("-__v");
-    }
+    // if (req.query.fields) {
+    //   const fields = req.query.fields.split(",").join(" ");
+    //   query = query.select(fields);
+    // } else {
+    //   query = query.select("-__v");
+    // }
 
     // pagination
 
-    const page = req.query.page;
-    const limit = req.query.limit;
-    const skip = (page - 1) * limit;
-    query = query.skip(skip).limit(limit);
-    if (req.query.page) {
-      const productCount = await Product.countDocuments();
-      if (skip >= productCount) throw new Error("Trang này không tồn tại.");
-    }
+    // const page = req.query.page;
+    // const limit = req.query.limit;
+    // const skip = (page - 1) * limit;
+    // query = query.skip(skip).limit(limit);
+    // if (req.query.page) {
+    //   const productCount = await Product.countDocuments();
+    //   if (skip >= productCount) throw new Error("Trang này không tồn tại.");
+    // }
     const product = await query;
-    res.send({ data: product });
+    res.status(200).send({ 
+      status: true,
+      data: product,
+      test: {
+        page, limit
+      }
+      // total: product.length
+    });
   } catch (error) {
     throw new Error(error);
   }
