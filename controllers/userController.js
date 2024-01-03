@@ -179,6 +179,7 @@ const updatedUser = asyncHandler(async (req, res) => {
       { new: true }
     );
     res.send({
+      status: true,
       message: "Cập nhật thông tin người dùng thành công.",
       data: updatedUser,
     });
@@ -238,7 +239,10 @@ const deleteUserById = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const deleteOneUser = await User.findByIdAndDelete(id);
-    res.send({ message: "Đã xóa người dùng thành công." });
+    res.status(200).send({ 
+      status: true,
+      message: "Đã xóa người dùng thành công." 
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -308,7 +312,7 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
   try {
     const token = await user.createPasswordResetToken();
     await user.save();
-    const resetURL = `Hi, Please follow this link to reset Your Password. This link is valid till 10 minutes from now. <a href='http://localhost:5000/api/user/reset-password/${token}'>Click Here</>`;
+    const resetURL = `Hi, Please follow this link to reset Your Password. This link is valid till 10 minutes from now. <a href='https://ecommerce-shopping-api.onrender.com/api/user/reset-password/${token}'>Click Here</>`;
     const data = {
       to: email,
       text: "Hey User",
