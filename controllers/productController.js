@@ -99,50 +99,35 @@ const getProductById = asyncHandler(async (req, res) => {
 
 const getAllProduct = asyncHandler(async (req, res) => {
   try {
-    const queryObj = { ...req.query };
-    const excludeFields = ["page", "sort", "limit", "fields"];
-    excludeFields.forEach((el) => delete queryObj[el]);
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    const { pageStart, pageSize } = req.query;
+    if(!pageStart) pageStart = 1;
+    if(!pageSize) pageSize = 10;
+    const limit = parseInt(pageSize) || 10;
+    const skip = (pageStart - 1) * pageSize;
 
-    let query = Product.find();
-    // if (req.query.sort) {
-    //   const sortBy = req.query.sort.split(",").join(" ");
-    //   query = query.sort(sortBy);
-    // } else {
-    //   query = query.sort("-createdAt");
-    // }
+    const totalProduct = await Product.countDocuments().exec();
+    const products = await Product.find().sort("_id").limit(limit).skip(skip).exec();
+    const previous_pages = pageStart - 1;
+    const next_pages = Math.ceil((totalProduct - skip) / pageSize);
 
-    // if (req.query.fields) {
-    //   const fields = req.query.fields.split(",").join(" ");
-    //   query = query.select(fields);
-    // } else {
-    //   query = query.select("-__v");
-    // }
-
-    // pagination
-
-    // const page = req.query.page;
-    // const limit = req.query.limit;
-    // const skip = (page - 1) * limit;
-    // query = query.skip(skip).limit(limit);
-    // if (req.query.page) {
-    //   const productCount = await Product.countDocuments();
-    //   if (skip >= productCount) throw new Error("Trang này không tồn tại.");
-    // }
-    const product = await query;
     res.status(200).send({ 
       status: true,
-      data: product,
-      test: {
-        page, limit
-      }
-      // total: product.length
+      data: {
+        pageStart: pageStart,
+        itemPerPage: pageSize,
+        products: products,
+        next: next_pages,
+        previous: previous_pages
+      },
     });
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ 
+      status: false,
+      message: "Sorry, something went wrong", 
+    });
   }
 });
+
 const addToWishlist = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { prodId } = req.body;
